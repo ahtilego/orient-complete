@@ -1,0 +1,48 @@
+#!/usr/bin/bash
+
+function _oenv()
+{
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev1="${COMP_WORDS[COMP_CWORD-1]}"
+    prev2="${COMP_WORDS[COMP_CWORD-2]}"
+    prev3="${COMP_WORDS[COMP_CWORD-3]}"
+    opts="update workspace runtime --version --help -h -?"
+
+    # Update
+    if [ "${prev1}" == "update" ]; then
+        opts=check
+
+    elif [[ "${prev2}" == "update" && "${prev1}" == "check" ]]; then
+        opts="-y --yes"
+
+    # Workspace
+    elif [ "${prev1}" == "workspace" ]; then
+        opts="install show"
+
+    elif [ "${prev2}" == "workspace" ]; then
+        if [ "${prev1}" == "install" ]; then
+            opts="-ws --ws-path --register-only"
+        elif [ "${prev1}" == "show" ]; then
+            opts="-ws --ws-path"
+        fi
+
+    # Runtime
+    elif [ "${prev1}" == "runtime" ]; then
+        opts="create repair"
+
+    elif [[ "${prev2}" == "runtime" && "${prev1}" == "create" ]]; then
+        opts="-p --cache-path -ws --ws-path -s --save -f --force"
+
+    # Help
+    elif [[ "${prev1}" == "--help" || ${prev1} == "-h" || "${prev1}" == "-?" ]]; then
+        opts="update workspace runtime"
+    fi
+
+
+    COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+    return 0
+}
+
+complete -F _oenv oenv
