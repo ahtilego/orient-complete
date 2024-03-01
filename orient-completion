@@ -70,4 +70,19 @@ _orient(){
 }
 complete -F _orient orient
 
+orient() {
+    if [ "${@:-x}" == "branch" ]; then
+        local workspace=$(__orient_workspace)
+        if [ -z ${workspace} ] ; then
+            echo "You're not in orient workspace"
+        else
+            cd $workspace/orient_virtual_branches
+            git branch
+            cd $OLDPWD
+        fi
+    else
+        command orient "$@"
+    fi
+}
+
 # vim: filetype=bash
