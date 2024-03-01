@@ -3,14 +3,21 @@ __orient_cmds="add agent-pools branch build check checkout clean-cache cli clone
     refresh repo report reviews rm selfupdate setup stash status suppress tps_report trigger-lkg vetting visualize"
 
 __orient_workspace() {
-    oenv workspace show 2>/dev/null | grep "^Workspace:" | cut -d ' ' -f 2
+    local dir=$PWD
+    while [ $dir != "/" ]; do
+        if [ -f ${dir}/.orient-ws ]; then
+            echo $dir
+            return 0
+        fi
+        dir=$(dirname $dir)
+    done
+    return 1
 }
 
 __orient_repos() {
     # Workspace: /home/lego/code/citrix-linux
-    #local workspace=$(oenv workspace show 2>/dev/null | grep "^Workspace:" | cut -d ' ' -f 2)
     local workspace=$(__orient_workspace)
-    if [ "x${workspace}" == "x" ] ; then
+    if [ ! $? ] ; then
         return 1
     else
         cat ${workspace}/orient/components/world.json | jq -j '.components[].name+" "'
