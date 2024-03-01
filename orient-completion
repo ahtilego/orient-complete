@@ -1,0 +1,66 @@
+__orient_cmds="add agent-pools branch build check checkout clean-cache cli clone component config credentials deliver
+    diff docker doctor fetch from-materialized hash help list log lookup merge motd pull push rebase rebuild-publications
+    refresh repo report reviews rm selfupdate setup stash status suppress tps_report trigger-lkg vetting visualize"
+
+__orient_workspace() {
+    oenv workspace show 2>/dev/null | grep "^Workspace:" | cut -d ' ' -f 2
+}
+
+__orient_repos() {
+    # Workspace: /home/lego/code/citrix-linux
+    #local workspace=$(oenv workspace show 2>/dev/null | grep "^Workspace:" | cut -d ' ' -f 2)
+    local workspace=$(__orient_workspace)
+    if [ "x${workspace}" == "x" ] ; then
+        return 1
+    else
+        cat ${workspace}/orient/components/world.json | jq -j '.components[].name+" "'
+        return 0
+    fi
+}
+
+__orient_repo_cmds="branch delete fetch for-each hash materialize optimize ovb-lookup reset show"
+
+__orient_repo() {
+    local workspace=$(__orient_workspace)
+    if [ "x${workspace}" == "x" ] ; then
+        return 1
+    else
+        echo "-h --help ${__orient_repo_cmds[@]}"
+        return 0
+    fi
+}
+
+__orient_setup_targets() {
+    local workspace=$(__orient_workspace)
+    if [ -f setup_targets ]; then
+        cat setup_targets
+    else
+        __orient_repos
+    fi
+}
+
+_orient(){
+    # echo "repo: 4=$4, 3=$3, 2=$2, 1=$1, 0=$0"
+    if [ "$3" == "add" ]; then
+        COMPREPLY=( $(compgen -W "$(__orient_repos)" -- $2) )
+    elif [ "$3" == "list" ]; then
+        COMPREPLY=( $(compgen -W "$(__orient_repos)" -- $2) )
+    elif [ "$3" == "setup" ]; then
+        # TODO: append slash to all the repos, and no space
+        COMPREPLY=( $(compgen -W "$(__orient_setup_targets)" -- $2) )
+    elif [ "$3" == "repo" ]; then
+        # check if there is a repo command after `orient repo`. if yes, present list of repo names. otherwise, present list of repo commands
+        if [ "$4" == "" ]; then
+            # echo "repo: 4=<empty>"
+            COMPREPLY=( $(compgen -W "$__orient_repo_cmds" -- $2) )
+        else
+            # echo "get list of repos"
+            COMPREPLY=( $(compgen -W "$(__orient_repos)" -- $2) )
+        fi
+    else
+        COMPREPLY=( $(compgen -W "$__orient_cmds" -- $2) )
+    fi
+}
+complete -F _orient orient
+
+# vim: filetype=bash
