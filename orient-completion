@@ -71,10 +71,14 @@ _orient(){
 complete -F _orient orient
 
 orient() {
-    if [ "${@:-x}" == "branch" ]; then
+    local argc=$#
+    local argv=($@)
+    if [ $argc -eq 1 ] && [ "${argv[0]:-x}" == "branch" ]; then
         local workspace=$(__orient_workspace)
         if [ -z ${workspace} ] ; then
-            echo "You're not in orient workspace"
+            local red='\e[0;31m'
+            local reset='\e[0m'
+            echo -e "${red}You're not in orient workspace${reset}"
         else
             cd $workspace/orient_virtual_branches
             git branch
