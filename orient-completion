@@ -1,5 +1,5 @@
-__orient_cmds="add agent-pools branch build check checkout clean-cache cli clone component config credentials deliver
-    diff docker doctor fetch from-materialized hash help list log lookup merge motd pull push rebase rebuild-publications
+__orient_cmds="add agent-pools branch build check checkout clean-cache clone component config credentials deliver
+    diff docker doctor fetch from-materialized hash help list log lookup merge pull push rebase rebuild-publications
     refresh repo report reviews rm selfupdate setup stash status suppress tps_report trigger-lkg vetting visualize"
 
 __orient_workspace() {
@@ -70,22 +70,34 @@ _orient(){
 }
 complete -F _orient orient
 
+# TODO: move this to somewhere else - it's orient, but not about completions
 orient() {
     local argc=$#
     local argv=($@)
-    if [ $argc -eq 1 ] && [ "${argv[0]:-x}" == "branch" ]; then
-        local workspace=$(__orient_workspace)
-        if [ -z ${workspace} ] ; then
-            local red='\e[0;31m'
-            local reset='\e[0m'
-            echo -e "${red}You're not in orient workspace${reset}"
-        else
-            cd $workspace/orient_virtual_branches
-            git branch
-            cd $OLDPWD
-        fi
+    if [ $argc -eq 1 ]; then
+        case ${argv[0]} in
+        "branch")
+            local workspace=$(__orient_workspace)
+            if [ -z ${workspace} ] ; then
+                local red='\e[0;31m'
+                local reset='\e[0m'
+                echo -e "${red}You're not in orient workspace${reset}"
+            else
+                cd $workspace/orient_virtual_branches
+                git branch
+                cd $OLDPWD
+            fi
+            ;;
+        "deliver")
+            local workspace=$(__orient_workspace)
+            command orient deliver --yes --security-ok --delete-vbranch --rebase
+            ;;
+        *)
+            command orient $@
+            ;;
+        esac
     else
-        command orient "$@"
+        command orient $@
     fi
 }
 
