@@ -46,3 +46,12 @@ function _oenv()
 }
 
 complete -F _oenv oenv
+
+function oenv() {
+    if [ $# -eq 1 ] && [ "$1" == "workspace" ]; then
+        orientroot
+        return 0
+    fi
+    command oenv $@
+}
+
